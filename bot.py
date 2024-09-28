@@ -3,6 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
 from dotenv import load_dotenv
+from pymongo import MongoClient
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -12,6 +13,25 @@ token = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Logging for debugging purposes
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+# Get MongoDB connection string from the environment
+MONGO_URI = os.getenv("MONGO_URI")
+
+# Select database and collection
+# Connect to MongoDB
+client = pymongo.MongoClient(MONGO_URI)
+db = client['telegram_bot_db']
+users_collection = db['users']
+
+# Function to check if a user exists and store new users
+def check_or_add_user(user_id, user_first_name):
+    user = users_collection.find_one({"user_id": user_id})
+    
+    if user is None:
+        # New user, add to database
+        users_collection.insert_one({"user_id": user_id, "first_name": user_first_name})
+        return False  # Indicates the user is new
+    return True  # Indicates the user already exists
 
 # Organize messages into categories
 messages = {
@@ -34,8 +54,20 @@ messages = {
 
 # Start command with personalized greeting
 async def send_welcome_message(update: Update, context) -> None:
+    user_id = update.message.from_user.id
     user_first_name = update.message.from_user.first_name
-    await update.message.reply_text(f"Welcome {user_first_name}! I'm here to share healing and uplifting messages with you.")
+    
+    # Check if user exists in the database
+    if check_or_add_user(user_id, user_first_name):
+        # Existing user
+        await update.message.reply_text(f"Welcome back, {user_first_name}! How have you been?")
+    else:
+        # New user
+        await update.message.reply_text(f"Welcome {user_first_name}! I'm here to share healing and uplifting messages with you.")
+    
+    # After greeting, show the menu
+    await send_message_menu(update, context)
+
 
 # Send menu with categories
 async def send_message_menu(update: Update, context) -> None:
@@ -89,7 +121,7 @@ def main():
     """
     Handles the initial launch of the program (entry point).
     """
-    
+
     application = Application.builder().token(token).concurrent_updates(True).build()
 
     # Command handlers
