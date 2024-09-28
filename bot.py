@@ -1,8 +1,14 @@
+import os
 import logging
-import random
-import datetime
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler, JobQueue
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
+
+# Get the bot token from the environment
+token = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Logging for debugging purposes
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -83,7 +89,7 @@ def main():
     """
     Handles the initial launch of the program (entry point).
     """
-    token = '7615807723:AAE-i7bTiUjZ91EMoNvHoNwk8SsXm77zIkk'
+    
     application = Application.builder().token(token).concurrent_updates(True).build()
 
     # Command handlers
