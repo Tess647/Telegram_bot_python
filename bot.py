@@ -1,7 +1,9 @@
 import os
 import logging
+import random
+import datetime
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -19,7 +21,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 
 # Select database and collection
 # Connect to MongoDB
-client = pymongo.MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI)  # Fixed MongoClient usage
 db = client['telegram_bot_db']
 users_collection = db['users']
 
@@ -68,7 +70,6 @@ async def send_welcome_message(update: Update, context) -> None:
     # After greeting, show the menu
     await send_message_menu(update, context)
 
-
 # Send menu with categories
 async def send_message_menu(update: Update, context) -> None:
     keyboard = [
@@ -106,7 +107,9 @@ async def set_daily_message(update: Update, context) -> None:
 
 # Command to stop daily messages
 async def stop_daily_message(update: Update, context) -> None:
-    context.job_queue.stop()
+    current_jobs = context.job_queue.get_jobs_by_name(str(update.message.chat_id))
+    for job in current_jobs:
+        job.schedule_removal()
     await update.message.reply_text("Daily messages stopped.")
 
 # Error handling
