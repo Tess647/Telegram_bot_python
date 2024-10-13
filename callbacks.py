@@ -57,14 +57,19 @@ async def handle_message_type(update, context):
     query = update.callback_query
     category = query.data
 
+    # Handle feedback separately
     if category == 'feedback':
         await query.message.reply_text("Please type your feedback. How can I improve?")
         return
 
+    # Check if category is one of the message categories
     if category in messages:
-        await send_random_message_in_category(query, context, category)
+        # Pass `update` to `send_random_message_in_category` instead of `query`
+        await send_random_message_in_category(update, context, category)
 
+    # Ensure the query is answered to remove the loading icon
     await query.answer()
+
 
 # Handle user feedback
 async def handle_feedback(update, context):

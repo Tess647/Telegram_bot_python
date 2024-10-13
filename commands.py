@@ -10,18 +10,32 @@ async def send_welcome_message(update, context):
 
     # Check if user exists
     if check_or_add_user(user_id, user_first_name):
-        # Greet returning user
-        await update.message.reply_text(f"Welcome back, {user_first_name}! How have you been?")
+        # Brief reminder for existing users
+        reminder_message = (
+            f"Welcome back, {user_first_name}!\n"
+            "Just a quick reminder of what you can do:\n"
+            "- /set_daily: Schedule a daily message to keep yourself motivated.\n"
+            "- /stop_daily: Stop receiving daily messages whenever you like.\n"
+            "- /feedback: Share your feedback with me anytime!\n\n"
+            "Feel free to choose an option from the menu below!"
+        )
+        await update.message.reply_text(reminder_message)
     else:
-        # Greet new user
-        await update.message.reply_text(f"Welcome {user_first_name}! I'm here to inspire you every day.")
-
-        # Option 1: Send only one random message from a category
-        category = random.choice(list(messages.keys()))  # Select a random category
-        await send_random_message_in_category(update, context, category)
+        # Brief intro for new users
+        intro_message = (
+            f"Welcome {user_first_name}! I'm here to share daily inspiration and help you stay motivated, strong, and peaceful.\n\n"
+            "Here's a quick guide to get started:\n"
+            "- /start: Start interacting with me, and I'll greet you personally!\n"
+            "- /set_daily: Schedule a daily message to inspire you at a time that works best for you.\n"
+            "- /stop_daily: Stop receiving daily messages whenever you need a break.\n"
+            "- /feedback: Share your thoughts and feedback with me!\n\n"
+            "Now, go ahead and choose an option from the menu below to receive a motivational message!"
+        )
+        await update.message.reply_text(intro_message)
     
-    # Show the message category selection menu
+    # Show the menu after the message
     await send_message_menu(update, context)
+
 
 # Send menu with categories
 async def send_message_menu(update, context):
