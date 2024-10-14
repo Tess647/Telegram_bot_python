@@ -33,17 +33,21 @@ application.add_error_handler(error_handler)
 async def webhook():
     """Handle incoming webhook updates."""
     update = Update.de_json(request.get_json(force=True), application.bot)
+    
+    # Ensure application is initialized before processing updates
+    await application.initialize()
+    
     await application.process_update(update)
     return "OK"
 
 async def set_webhook():
     """Set the webhook for the bot."""
+    await application.initialize()  # Initialize the application before setting the webhook
     await application.bot.set_webhook(webhook_url + f'/{token}')
 
 @app.route('/')
 def index():
     return "Bot is running!"
-
 
 def main():
     print("Telegram Bot started with Webhook!", flush=True)
