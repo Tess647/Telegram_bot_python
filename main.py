@@ -40,6 +40,11 @@ async def set_webhook():
     """Set the webhook for the bot."""
     await application.bot.set_webhook(webhook_url + f'/{token}')
 
+@app.route('/')
+def index():
+    return "Bot is running!"
+
+
 def main():
     print("Telegram Bot started with Webhook!", flush=True)
     
