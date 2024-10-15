@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from handlers import setup_handlers
 from utils.error_handler import error_handler
 from telegram import Update
+import asyncio
 
 # Load environment variables
 load_dotenv()
@@ -30,20 +31,20 @@ setup_handlers(application)
 application.add_error_handler(error_handler)
 
 @app.route(f'/{token}', methods=['POST'])
-async def webhook():
+def webhook():
     """Handle incoming webhook updates."""
     update = Update.de_json(request.get_json(force=True), application.bot)
     
-    # Ensure application is initialized before processing updates
-    await application.initialize()
-    
-    await application.process_update(update)
+    # Schedule the update processing in an event loop.
+    asyncio.run(application.process_update(update))
     return "OK"
 
 async def set_webhook():
-    """Set the webhook for the bot."""
-    await application.initialize()  # Initialize the application before setting the webhook
-    await application.bot.set_webhook(webhook_url + f'/{token}')
+    try:
+        # Set the webhook to listen for updates at the correct endpoint.
+        await application.bot.set_webhook(f'{webhook_url}/{token}')
+    except Exception as e:
+        logging.error(f"Error setting webhook: {e}")
 
 @app.route('/')
 def index():
@@ -53,7 +54,6 @@ def main():
     print("Telegram Bot started with Webhook!", flush=True)
     
     # Set the webhook
-    import asyncio
     asyncio.run(set_webhook())
     
     # Run the Flask app (web server) on Heroku's provided port
